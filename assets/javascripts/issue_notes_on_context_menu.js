@@ -17,7 +17,9 @@ function updateIssueNotesOnContextMenuDialog(wikiOuter) {
       const $dialog = $dialogInstance.uiDialog;
       $dialog.toggleClass("editable", editable);
 
-      if ($dialogInstance.element.find("form[id^=journal]").length > 0) {
+      if ($dialogInstance.element.find("form.add_notes_form").length > 0) {
+        $dialog.addClass("add_note");
+      } else if ($dialogInstance.element.find("form[id^=journal]").length > 0) {
         updateIssueNotesOnContextMenuDialog.bindEventsToEditFormButtons(
           $dialog
         );
@@ -30,9 +32,16 @@ function updateIssueNotesOnContextMenuDialog(wikiOuter) {
   }
 
   function updateDialogTitle() {
+    const $dialogInstance = $wikiOuter.dialog("instance");
     // Countermeasure if dialog is already closed
-    if ($wikiOuter.dialog("instance")) {
-      $wikiOuter.dialog("option", "title", $wiki.data("title"));
+    if ($dialogInstance) {
+      if ($dialogInstance.element.find("form.add_notes_form").length > 0) {
+        $wikiOuter.dialog({
+          title: IssueNotesOnContextMenu.resources.label_add_note,
+        });
+      } else {
+        $wikiOuter.dialog("option", "title", $wiki.data("title"));
+      }
     }
   }
 
