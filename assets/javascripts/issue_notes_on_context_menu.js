@@ -14,8 +14,14 @@ function updateIssueNotesOnContextMenuDialog(wikiOuter) {
   function updateDialogClass() {
     const $dialogInstance = $wikiOuter.dialog("instance");
     if ($dialogInstance) {
-      const $dialog = $wikiOuter.closest(".ui-dialog");
+      const $dialog = $dialogInstance.uiDialog;
       $dialog.toggleClass("editable", editable);
+
+      if ($dialogInstance.element.find("form[id^=journal]").length > 0) {
+        updateIssueNotesOnContextMenuDialog.bindEventsToEditFormButtons(
+          $dialog
+        );
+      }
     }
   }
 
@@ -88,6 +94,33 @@ function updateIssueNotesOnContextMenuDialog(wikiOuter) {
   updateDialogButtons();
   updateContextMenuNotesCount();
 }
+
+updateIssueNotesOnContextMenuDialog.bindEventsToEditFormButtons = function (
+  dialog
+) {
+  const $dialog = $(dialog);
+
+  $dialog.addClass("edit_note");
+
+  // Bind event to submit button
+  const $submitButton = $dialog.find("form[id^=journal] input[type=submit]");
+  $submitButton.on("click.show_dialog_buttons", () => {
+    $dialog.removeClass("edit_note");
+  });
+
+  // Bind event to cancel button
+  const $cancelButton = $dialog.find("form[id^=journal] input[type=submit]+a");
+
+  const onClickFn = $cancelButton
+    .attr("onclick")
+    .replace(/return\s+false;?$/, "");
+  $cancelButton.attr("onclick", "");
+
+  $cancelButton.on("click.show_dialog_buttons", () => {
+    $dialog.removeClass("edit_note");
+    eval(onClickFn);
+  });
+};
 
 (() => {
   setTimeout(() => {
@@ -370,7 +403,7 @@ function updateIssueNotesOnContextMenuDialog(wikiOuter) {
     }
 
     /**
-     * Override original context menu functions
+     * Override original context menu and jsToolbar.draw functions
      */
     (function override() {
       try {
@@ -412,6 +445,22 @@ function updateIssueNotesOnContextMenuDialog(wikiOuter) {
                 openWikiDialog
               );
           })();
+        };
+
+        // Override jsToolbar.draw
+        const drawOrg = jsToolBar.prototype.draw;
+        jsToolBar.prototype.draw = function (mode) {
+          drawOrg.call(this, mode);
+
+          const $dialog = $(this.toolbarBlock).closest(
+            ".ui-dialog.issue_notes_on_context_menu"
+          );
+          if ($dialog.length === 0) return;
+          if ($dialog.hasClass("add_note")) return;
+
+          updateIssueNotesOnContextMenuDialog.bindEventsToEditFormButtons(
+            $dialog
+          );
         };
       } catch {
         console.error(
