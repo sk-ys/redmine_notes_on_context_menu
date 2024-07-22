@@ -23,4 +23,7 @@
     }
   }
 })();
+<% else %>
+  <% @issue = @journal.issue if @issue.nil? %>
+  <%= render partial: 'issue_notes_on_context_menus/update_note' %>
 <% end %>

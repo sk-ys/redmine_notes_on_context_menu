@@ -20,6 +20,8 @@ class IssueNotesOnContextMenusController < ApplicationController
   before_action :find_journal, only: [:show]
   before_action :find_issue, only: [:new, :create]
   
+  helper :journals
+  
   def show
     respond_to do |format|
       format.js
